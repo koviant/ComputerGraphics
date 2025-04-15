@@ -9,7 +9,7 @@ public static class SphereProjection
     private const float ViewportWidth = 2;
     private const float DistanceFromOriginToViewport = 1;
 
-    private static SpheresScene _scene = new SpheresScene()
+    private static SpheresScene _scene = new()
     {
         Spheres =
         [
@@ -36,19 +36,28 @@ public static class SphereProjection
     
     public static void Draw(ICanvas canvas, Point3D origin)
     {
-        for (int x = -canvas.Width/2+1; x < canvas.Width/2; x++)
+        var chunks = Environment.ProcessorCount;
+        var chunkWidth = canvas.Width / chunks;
+
+        var firstChunkStart = -canvas.Width / 2;
+
+        Parallel.For(0, chunks, chunk =>
         {
-            Debug.WriteLine($"Rendering line {x}");
+            var xMin = firstChunkStart + chunkWidth * chunk;
+            var xMax = xMin + chunkWidth;
             
-            for (int y = -canvas.Height / 2 + 1; y < canvas.Height / 2; y++)
+            for (int x = xMin; x < xMax; x++)
             {
-                var directionVector = CanvasToViewport(x, y, canvas.Width, canvas.Height);
-                var color = TraceRay(_scene, origin, directionVector, 1f, float.PositiveInfinity);
-                var converted = Coord.Convert(x, y, canvas.Width, canvas.Height);
-                canvas.SavePixel(converted.X, converted.Y, color);
+                for (int y = -canvas.Height / 2 + 1; y < canvas.Height / 2; y++)
+                {
+                    var directionVector = CanvasToViewport(x, y, canvas.Width, canvas.Height);
+                    var color = TraceRay(_scene, origin, directionVector, 1f, float.PositiveInfinity);
+                    var converted = Coord.Convert(x, y, canvas.Width, canvas.Height);
+                    canvas.SavePixel(converted.X, converted.Y, color);
+                }
             }
-        }
-        
+        });
+
         canvas.DrawCurrentState();
     }
 

@@ -52,6 +52,6 @@ public class AppDelegate : NSApplicationDelegate
             _ => Global.GlobalOrigin,
         };
 
-        return e;
+        return null;
     }
 }
