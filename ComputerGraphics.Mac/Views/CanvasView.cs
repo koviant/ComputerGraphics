@@ -1,3 +1,6 @@
+using AppKit;
+using CoreGraphics;
+
 namespace ComputerGraphics.Mac.Views;
 
 public class CanvasView : NSView, ICanvas

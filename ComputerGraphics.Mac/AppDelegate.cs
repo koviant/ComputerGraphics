@@ -1,4 +1,6 @@
+using AppKit;
 using ComputerGraphics.Mac.Views;
+using Foundation;
 
 namespace ComputerGraphics.Mac;
 
