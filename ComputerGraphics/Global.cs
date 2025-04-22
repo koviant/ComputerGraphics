@@ -3,11 +3,11 @@ namespace ComputerGraphics;
 public static class Global
 {
     private static ICanvas? _canvas;
-    private static Point3D? _globalOrigin;
+    private static Point3D _globalOrigin = new() { Z = -3 };
 
     public static Point3D GlobalOrigin
     {
-        get => _globalOrigin ?? new Point3D() { Z = -5 } ;
+        get => _globalOrigin;
         set
         {
             if (_globalOrigin == value)
@@ -16,9 +16,12 @@ public static class Global
             }
 
             _globalOrigin = value;
+            GlobalOriginChanged?.Invoke();
             DrawSpheresProjection();
         }
     }
+
+    public static event Action? GlobalOriginChanged;
 
     private static int Width => _canvas.Width;
     private static int Height => _canvas.Height;

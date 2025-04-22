@@ -16,4 +16,6 @@ public record struct Point3D
         Y = y;
         Z = z;
     }
+
+    public override string ToString() => $"X={X:F2}, Y={Y:F2}, Z={Z:F2}";
 }

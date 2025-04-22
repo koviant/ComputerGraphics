@@ -1,5 +1,6 @@
 using AppKit;
 using ComputerGraphics.Mac.Views;
+using CoreGraphics;
 using Foundation;
 
 namespace ComputerGraphics.Mac;
@@ -8,6 +9,7 @@ namespace ComputerGraphics.Mac;
 public class AppDelegate : NSApplicationDelegate 
 {
     private NSWindow _window;
+    private NSTextField _textField;
 
     private const int DownKey = 125;
     private const int LeftKey = 123;
@@ -17,7 +19,7 @@ public class AppDelegate : NSApplicationDelegate
     public override void DidFinishLaunching(NSNotification notification)
     {
         _window = new NSWindow(
-            new CoreGraphics.CGRect(0, 0, 720, 720),
+            new CGRect(0, 0, 720, 720),
             NSWindowStyle.Titled | NSWindowStyle.Closable | NSWindowStyle.Resizable, NSBackingStore.Buffered,
         false);
 
@@ -26,20 +28,39 @@ public class AppDelegate : NSApplicationDelegate
             _window.ContentView.Frame,
             (int)_window.ContentView.Frame.Width,
             (int)_window.ContentView.Frame.Height);
+
         _window.ContentView.AddSubview(canvasView);
+
+        _textField = new NSTextField(new CGRect(10, _window.ContentView.Frame.Height - 30, 300, 24))
+        {
+            Editable = false,
+            Bezeled = false,
+            DrawsBackground = false,
+            Selectable = false,
+            Font = NSFont.SystemFontOfSize(18),
+            TextColor = NSColor.Black,
+        };
+
+        _window.ContentView.AddSubview(_textField);
 
         _window.MakeKeyAndOrderFront(null);
 
         // canvasView.Layer.BorderWidth = 1;
         // canvasView.Layer.BorderColor = new CGColor(255, 255, 255);
 
+
+        Global.GlobalOriginChanged += OnGlobalOriginChanged;
         Global.SetPlatformCanvas(canvasView);
         // Global.DrawPixel(0, 0, CColor.Red);
         // Global.DrawXAxis(CColor.Red);
         // Global.DrawYAxis(CColor.Green);
         Global.DrawSpheresProjection();
         NSEvent.AddLocalMonitorForEventsMatchingMask(NSEventMask.KeyDown, HandleKeyDown);
+        
+        OnGlobalOriginChanged();
     }
+
+    void OnGlobalOriginChanged() => _textField.StringValue = $"Origin: {Global.GlobalOrigin.ToString()}";
 
     private NSEvent HandleKeyDown(NSEvent e)
     {
