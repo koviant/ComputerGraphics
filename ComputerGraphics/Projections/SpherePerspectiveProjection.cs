@@ -1,6 +1,3 @@
-using System.Diagnostics;
-using System.Drawing;
-
 namespace ComputerGraphics;
 
 public static class SpherePerspectiveProjection

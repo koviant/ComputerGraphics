@@ -1,4 +1,5 @@
 using AppKit;
+using ComputerGraphics.Debug;
 using ComputerGraphics.Mac.Views;
 using CoreGraphics;
 using Foundation;
@@ -9,7 +10,7 @@ namespace ComputerGraphics.Mac;
 public class AppDelegate : NSApplicationDelegate 
 {
     private NSWindow _window;
-    private NSTextField _textField;
+    private DebugView _debugView;
 
     private const int DownKey = 125;
     private const int LeftKey = 123;
@@ -31,36 +32,32 @@ public class AppDelegate : NSApplicationDelegate
 
         _window.ContentView.AddSubview(canvasView);
 
-        _textField = new NSTextField(new CGRect(10, _window.ContentView.Frame.Height - 30, 300, 24))
-        {
-            Editable = false,
-            Bezeled = false,
-            DrawsBackground = false,
-            Selectable = false,
-            Font = NSFont.SystemFontOfSize(18),
-            TextColor = NSColor.Black,
-        };
+        _debugView = new DebugView(new CGRect(10, _window.ContentView.Frame.Height - 300, 300, 300));
+        _debugView.OnSwitchStateChanged += DebugViewOnOnSwitchStateChanged;
 
-        _window.ContentView.AddSubview(_textField);
+        _debugView.Layer.BorderColor = new CGColor(255, 0, 0);
+        _debugView.Layer.BorderWidth = 1;
+        
+        _window.ContentView.AddSubview(_debugView);
 
         _window.MakeKeyAndOrderFront(null);
 
-        // canvasView.Layer.BorderWidth = 1;
-        // canvasView.Layer.BorderColor = new CGColor(255, 255, 255);
-
-
         Global.GlobalOriginChanged += OnGlobalOriginChanged;
         Global.SetPlatformCanvas(canvasView);
-        // Global.DrawPixel(0, 0, CColor.Red);
-        // Global.DrawXAxis(CColor.Red);
-        // Global.DrawYAxis(CColor.Green);
         Global.DrawSpheresProjection();
+
         NSEvent.AddLocalMonitorForEventsMatchingMask(NSEventMask.KeyDown, HandleKeyDown);
-        
+
         OnGlobalOriginChanged();
     }
 
-    void OnGlobalOriginChanged() => _textField.StringValue = $"Origin: {Global.GlobalOrigin.ToString()}";
+    private void DebugViewOnOnSwitchStateChanged()
+    {
+        Global.SphereProjectionType =
+            _debugView.SwitchState ? SphereProjectionType.Orthogonal : SphereProjectionType.Perspective;
+    }
+
+    void OnGlobalOriginChanged() => _debugView.OriginText = $"Origin: {Global.GlobalOrigin.ToString()}";
 
     private NSEvent HandleKeyDown(NSEvent e)
     {

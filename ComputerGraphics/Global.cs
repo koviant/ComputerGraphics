@@ -1,3 +1,5 @@
+using ComputerGraphics.Debug;
+
 namespace ComputerGraphics;
 
 public static class Global
@@ -19,6 +21,16 @@ public static class Global
             GlobalOriginChanged?.Invoke();
             DrawSpheresProjection();
         }
+    }
+
+    public static SphereProjectionType SphereProjectionType
+    {
+        get => _sphereProjectionType;
+        set
+        {
+            _sphereProjectionType = value;
+            DrawSpheresProjection();
+        } 
     }
 
     public static event Action? GlobalOriginChanged;
@@ -48,6 +60,8 @@ public static class Global
         ]
     };
 
+    private static SphereProjectionType _sphereProjectionType;
+
     public static void SetPlatformCanvas(ICanvas canvas)
     {
         _canvas = canvas;
@@ -61,35 +75,18 @@ public static class Global
         canvas.DrawPixel(103, 103, CColor.Yellow);
         canvas.DrawPixel(104, 104, CColor.Green);
         canvas.DrawPixel(105, 105, CColor.Green);
-    }        
-
-    public static void DrawPixel(int x, int y, CColor color)
-    {
-        var converted = Coord.Convert(x, y, _canvas.Width, _canvas.Height);
-        _canvas.DrawPixel(converted.X, converted.Y, color);
-    }
-
-    public static void DrawXAxis(CColor color)
-    {
-        var y = _canvas.Height / 2;
-        for (int i = 0; i < _canvas.Width; i++)
-        {
-            _canvas.DrawPixel(i, y, color);
-        }
-    }
-    
-    public static void DrawYAxis(CColor color)
-    {
-        var x = _canvas.Width / 2;
-        for (int i = 0; i < _canvas.Height; i++)
-        {
-            _canvas.DrawPixel(x, i, color);
-        }
     }
 
     public static void DrawSpheresProjection()
     {
-        // SpherePerspectiveProjection.Draw(_canvas, GlobalOrigin, _scene);
-        SphereOrthogonalProjection.Draw(_canvas, GlobalOrigin, _scene);
+        switch (_sphereProjectionType)
+        {
+            case SphereProjectionType.Orthogonal:
+                SphereOrthogonalProjection.Draw(_canvas, GlobalOrigin, _scene);
+                break;
+            case SphereProjectionType.Perspective:
+                SpherePerspectiveProjection.Draw(_canvas, GlobalOrigin, _scene);
+                break;
+        }
     }
 }
