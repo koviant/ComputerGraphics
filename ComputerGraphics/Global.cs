@@ -23,8 +23,30 @@ public static class Global
 
     public static event Action? GlobalOriginChanged;
 
-    private static int Width => _canvas.Width;
-    private static int Height => _canvas.Height;
+    private static SpheresScene _scene = new()
+    {
+        Spheres =
+        [
+            new Sphere
+            {
+                Center = new Point3D(0, -1, 3),
+                Radius = 1,
+                Color = CColor.Red,
+            },
+            new Sphere
+            {
+                Center = new Point3D(2, 0, 4),
+                Radius = 1,
+                Color = CColor.Blue,
+            },
+            new Sphere
+            {
+                Center = new Point3D(-2, 0, 4),
+                Radius = 1,
+                Color = CColor.Green,
+            },
+        ]
+    };
 
     public static void SetPlatformCanvas(ICanvas canvas)
     {
@@ -67,6 +89,7 @@ public static class Global
 
     public static void DrawSpheresProjection()
     {
-        SphereProjection.Draw(_canvas, GlobalOrigin);
+        // SpherePerspectiveProjection.Draw(_canvas, GlobalOrigin, _scene);
+        SphereOrthogonalProjection.Draw(_canvas, GlobalOrigin, _scene);
     }
 }

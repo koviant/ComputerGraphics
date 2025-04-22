@@ -1,45 +1,18 @@
-using System.Diagnostics;
-using System.Drawing;
-
 namespace ComputerGraphics;
 
-public static class SphereProjection
+public class SphereOrthogonalProjection
 {
-    private const float ViewportHeight = 2;
-    private const float ViewportWidth = 2;
-    private const float DistanceFromOriginToViewport = 1;
+    private const float ViewportHeight = 10f;
+    private const float ViewportWidth = 10f;
 
-    private static SpheresScene _scene = new()
-    {
-        Spheres =
-        [
-            new Sphere
-            {
-                Center = new Point3D(0, -1, 3),
-                Radius = 1,
-                Color = CColor.Red,
-            },
-            new Sphere
-            {
-                Center = new Point3D(2, 0, 4),
-                Radius = 1,
-                Color = CColor.Blue,
-            },
-            new Sphere
-            {
-                Center = new Point3D(-2, 0, 4),
-                Radius = 1,
-                Color = CColor.Green,
-            },
-        ]
-    };
-    
-    public static void Draw(ICanvas canvas, Point3D origin)
+    public static void Draw(ICanvas canvas, Point3D viewportCenter, SpheresScene scene)
     {
         var chunks = Environment.ProcessorCount;
         var chunkWidth = canvas.Width / chunks;
 
         var firstChunkStart = -canvas.Width / 2;
+
+        var directionVector = new Vector3D(0, 0, 1);
 
         Parallel.For(0, chunks, chunk =>
         {
@@ -50,8 +23,13 @@ public static class SphereProjection
             {
                 for (int y = -canvas.Height / 2 + 1; y < canvas.Height / 2; y++)
                 {
-                    var directionVector = CanvasToViewport(x, y, canvas.Width, canvas.Height);
-                    var color = TraceRay(_scene, origin, directionVector, 1f, float.PositiveInfinity);
+                    var origin = new Point3D
+                    {
+                        X = x * ViewportWidth / canvas.Width + viewportCenter.X,
+                        Y = y * ViewportHeight / canvas.Height + viewportCenter.Y,
+                        Z = viewportCenter.Z,
+                    };
+                    var color = TraceRay(scene, origin, directionVector, origin.Z, float.PositiveInfinity);
                     var converted = Coord.Convert(x, y, canvas.Width, canvas.Height);
                     canvas.SavePixel(converted.X, converted.Y, color);
                 }
@@ -61,11 +39,6 @@ public static class SphereProjection
         canvas.DrawCurrentState();
     }
 
-    private static Vector3D CanvasToViewport(int x, int y, int width, int height)
-    {
-        return new Vector3D(x * ViewportWidth / width, y * ViewportHeight / height, DistanceFromOriginToViewport);
-    }
-    
     private static CColor TraceRay(SpheresScene scene, Point3D origin, Vector3D rayDirection, float minDistance, float maxDistance)
     {
         var closestPoint = float.PositiveInfinity;
