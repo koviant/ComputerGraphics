@@ -1,18 +1,28 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net9.0-macos</TargetFramework>
+    <TargetFramework>net10.0-macos</TargetFramework>
     <OutputType>Exe</OutputType>
     <Nullable>enable</Nullable>
     <ImplicitUsings>true</ImplicitUsings>
     <SupportedOSPlatformVersion>12.0</SupportedOSPlatformVersion>
-
+    <LangVersion>14</LangVersion>
     <!--
       Enable full trimming in Release mode.
       To learn more, see: https://learn.microsoft.com/dotnet/core/deploying/trimming/trimming-options#trimming-granularity
     -->
-    <TrimMode Condition="'$(Configuration)' == 'Release'">full</TrimMode>
   </PropertyGroup>
+  
+  <PropertyGroup  Condition="'$(Configuration)' == 'Release'">
+<!--    <PublishAot>true</PublishAot>-->
+<!--    <IsAotCompatible>true</IsAotCompatible>-->
+    <TrimMode>full</TrimMode>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\ComputerGraphics\ComputerGraphics.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SharpMetal" Version="1.1.0" />
   </ItemGroup>
 </Project>

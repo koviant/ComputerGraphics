@@ -1,6 +1,7 @@
+using System.Threading.Tasks;
 using AppKit;
-using ComputerGraphics.Debug;
 using ComputerGraphics.Mac.Views;
+using ComputerGraphics.Projections;
 using CoreGraphics;
 using Foundation;
 
@@ -43,12 +44,22 @@ public class AppDelegate : NSApplicationDelegate
         _window.MakeKeyAndOrderFront(null);
 
         Global.GlobalOriginChanged += OnGlobalOriginChanged;
-        Global.SetPlatformCanvas(canvasView);
+        Global.Canvas = canvasView;
         Global.DrawSpheresProjection();
 
         NSEvent.AddLocalMonitorForEventsMatchingMask(NSEventMask.KeyDown, HandleKeyDown);
 
         OnGlobalOriginChanged();
+
+        Task.Run(UpdateFrameCounter);
+    }
+
+    private async Task UpdateFrameCounter()
+    {
+        await foreach (var fps in Global.FramesPerLastSecond())
+        {
+            InvokeOnMainThread(() => _debugView.Fps = fps);
+        }
     }
 
     private void DebugViewOnOnSwitchStateChanged()
@@ -57,17 +68,17 @@ public class AppDelegate : NSApplicationDelegate
             _debugView.SwitchState ? SphereProjectionType.Orthogonal : SphereProjectionType.Perspective;
     }
 
-    void OnGlobalOriginChanged() => _debugView.OriginText = $"Origin: {Global.GlobalOrigin.ToString()}";
+    void OnGlobalOriginChanged() => _debugView.Origin = Global.Origin;
 
     private NSEvent HandleKeyDown(NSEvent e)
     {
-        Global.GlobalOrigin = e.KeyCode switch
+        Global.Origin = e.KeyCode switch
         {
-            UpKey => Global.GlobalOrigin with { Y = Global.GlobalOrigin.Y + 0.1f },
-            DownKey => Global.GlobalOrigin with { Y = Global.GlobalOrigin.Y - 0.1f },
-            LeftKey => Global.GlobalOrigin with { X = Global.GlobalOrigin.X - 0.1f },
-            RightKey => Global.GlobalOrigin with { X = Global.GlobalOrigin.X + 0.1f },
-            _ => Global.GlobalOrigin,
+            UpKey => Global.Origin with { Y = Global.Origin.Y + 0.1f },
+            DownKey => Global.Origin with { Y = Global.Origin.Y - 0.1f },
+            LeftKey => Global.Origin with { X = Global.Origin.X - 0.1f },
+            RightKey => Global.Origin with { X = Global.Origin.X + 0.1f },
+            _ => Global.Origin,
         };
 
         return null;

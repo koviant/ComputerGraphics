@@ -7,6 +7,7 @@ namespace ComputerGraphics.Mac.Views;
 public class DebugView : NSView
 {
     private readonly NSTextField _textField;
+    private readonly NSTextField _fpsField;
     private readonly NSSwitch _switch;
     
     private const int On = (int)NSCellStateValue.On;
@@ -27,8 +28,18 @@ public class DebugView : NSView
             Font = NSFont.SystemFontOfSize(18),
             TextColor = NSColor.Black,
         };
+        
+        _fpsField = new NSTextField(new CGRect(0, Frame.Height - 60, 300, 24))
+        {
+            Editable = false,
+            Bezeled = false,
+            DrawsBackground = false,
+            Selectable = false,
+            Font = NSFont.SystemFontOfSize(18),
+            TextColor = NSColor.Black,
+        };
 
-        var switchTitle = new NSTextField(new CGRect(0, Frame.Height - 60, 300, 24))
+        var switchTitle = new NSTextField(new CGRect(0, Frame.Height - 90, 300, 24))
         {
             Editable = false,
             Bezeled = false,
@@ -42,20 +53,28 @@ public class DebugView : NSView
         _switch = new NSSwitch
         {
             State = On,
-            Frame = new CGRect(0, Frame.Height - 90, 40, 24),
+            Frame = new CGRect(0, Frame.Height - 120, 40, 24),
         };
 
         _switch.Activated += (_, _) => SwitchState = _switch.State == On;
 
         AddSubview(_textField);
+        AddSubview(_fpsField);
         AddSubview(switchTitle);
         AddSubview(_switch);
     }
 
-    public string OriginText
+    public Point3D Origin
     {
-        get => _textField.StringValue;
-        set => _textField.StringValue = value;
+        get;
+        set
+        {
+            if (field != value)
+            {
+                field = value;
+                _textField.StringValue = $"Origin: {value.ToString()}";
+            }
+        } 
     }
 
     public bool SwitchState
@@ -66,5 +85,11 @@ public class DebugView : NSView
             _switch.State = value ? On : Off;
             OnSwitchStateChanged?.Invoke();
         }
+    }
+    
+    public int Fps
+    {
+        get => string.IsNullOrEmpty(_fpsField.StringValue) ? 0 : int.Parse(_fpsField.StringValue);
+        set => _fpsField.StringValue = $"FPS: {value.ToString()}";
     }
 }

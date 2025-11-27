@@ -1,34 +1,33 @@
-using ComputerGraphics.Debug;
+using ComputerGraphics.Projections;
 
 namespace ComputerGraphics;
 
 public static class Global
 {
-    private static ICanvas? _canvas;
-    private static Point3D _globalOrigin = new() { Z = -3 };
+    private static int _framesCounter;
 
-    public static Point3D GlobalOrigin
+    public static Point3D Origin
     {
-        get => _globalOrigin;
+        get;
         set
         {
-            if (_globalOrigin == value)
+            if (field == value)
             {
                 return;
             }
 
-            _globalOrigin = value;
+            field = value;
             GlobalOriginChanged?.Invoke();
             DrawSpheresProjection();
         }
-    }
+    } = new() { Z = -3 };
 
     public static SphereProjectionType SphereProjectionType
     {
-        get => _sphereProjectionType;
+        get;
         set
         {
-            _sphereProjectionType = value;
+            field = value;
             DrawSpheresProjection();
         } 
     }
@@ -60,12 +59,7 @@ public static class Global
         ]
     };
 
-    private static SphereProjectionType _sphereProjectionType;
-
-    public static void SetPlatformCanvas(ICanvas canvas)
-    {
-        _canvas = canvas;
-    }
+    public static ICanvas Canvas { get; set; }
 
     public static void TestDraw(ICanvas canvas)
     {
@@ -79,14 +73,27 @@ public static class Global
 
     public static void DrawSpheresProjection()
     {
-        switch (_sphereProjectionType)
+        Interlocked.Increment(ref _framesCounter);
+        
+        switch (SphereProjectionType)
         {
             case SphereProjectionType.Orthogonal:
-                SphereOrthogonalProjection.Draw(_canvas, GlobalOrigin, _scene);
+                SphereOrthogonalProjection.Draw(Canvas, Origin, _scene);
                 break;
             case SphereProjectionType.Perspective:
-                SpherePerspectiveProjection.Draw(_canvas, GlobalOrigin, _scene);
+                SpherePerspectiveProjection.Draw(Canvas, Origin, _scene);
                 break;
+        }
+    }
+
+    public static async IAsyncEnumerable<int> FramesPerLastSecond()
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        while (await timer.WaitForNextTickAsync())
+        {
+            var frames = _framesCounter;
+            Interlocked.Exchange(ref _framesCounter, 0);
+            yield return frames;
         }
     }
 }
